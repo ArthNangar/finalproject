@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: is601
+      POSTGRES_PASSWORD: is601
+      POSTGRES_DB: is601_final
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg2://is601:is601@db:5432/is601_final
+      SECRET_KEY: change-me-in-prod
+      BASE_URL: http://localhost:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
