@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-md mx-auto rounded-2xl border border-slate-800 bg-slate-900/20 p-8 shadow">
+  <h2 class="text-2xl font-semibold">Welcome back</h2>
+  <p class="mt-2 text-slate-300 text-sm">Login to access your dashboard and history.</p>
+
+  <form class="mt-6 space-y-4" method="post" action="/auth/login">
+    <div>
+      <label class="text-sm text-slate-300">Username</label>
+      <input name="username" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+    </div>
+    <div>
+      <label class="text-sm text-slate-300">Password</label>
+      <input type="password" name="password" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+    </div>
+    <button class="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">Login</button>
+  </form>
+
+  <p class="mt-5 text-sm text-slate-300">
+    New here? <a class="text-indigo-400 hover:text-indigo-300" href="/register">Create an account</a>
+  </p>
+</div>
+{% endblock %}

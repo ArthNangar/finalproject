@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="grid gap-6 md:grid-cols-2">
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 shadow">
+    <h2 class="text-xl font-semibold">Update profile</h2>
+    <form class="mt-4 space-y-3" method="post" action="/profile">
+      <div>
+        <label class="text-sm text-slate-300">Username</label>
+        <input name="username" value="{{ user.username }}" minlength="3" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-300">Email</label>
+        <input name="email" value="{{ user.email }}" type="email" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+      </div>
+      <button class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">Save changes</button>
+    </form>
+  </div>
+
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 shadow">
+    <h2 class="text-xl font-semibold">Change password</h2>
+    <p class="mt-1 text-sm text-slate-300">After changing password, you'll be logged out.</p>
+
+    <form class="mt-4 space-y-3" method="post" action="/profile/password" onsubmit="return checkPwMatch();">
+      <div>
+        <label class="text-sm text-slate-300">Current password</label>
+        <input name="current_password" type="password" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-300">New password</label>
+        <input id="newpw" name="new_password" type="password" minlength="8" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+      </div>
+      <div>
+        <label class="text-sm text-slate-300">Confirm new password</label>
+        <input id="confpw" name="confirm_password" type="password" minlength="8" required class="mt-1 w-full rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+      </div>
+      <button class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">Change password</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function checkPwMatch(){
+  const a = document.getElementById("newpw").value || "";
+  const b = document.getElementById("confpw").value || "";
+  if(a.length < 8){
+    alert("New password must be at least 8 characters.");
+    return false;
+  }
+  if(a !== b){
+    alert("New passwords do not match.");
+    return false;
+  }
+  return true;
+}
+</script>
+{% endblock %}

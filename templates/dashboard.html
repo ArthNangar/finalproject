@@ -1,0 +1,261 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="grid gap-6 md:grid-cols-3">
+  <!-- Calculator -->
+  <div class="md:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/20 p-6 shadow">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-semibold">Calculator</h2>
+      <div class="flex gap-2">
+        <button onclick="undoCalc()" type="button"
+          class="text-xs rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800">
+          Undo
+        </button>
+        <button onclick="redoCalc()" type="button"
+          class="text-xs rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800">
+          Redo
+        </button>
+      </div>
+    </div>
+
+    <p class="mt-1 text-sm text-slate-300">
+      Operations: add, sub, mul, div, mod, pow
+    </p>
+
+    <!-- Simple Calculator -->
+    <form id="calcForm" class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+      <input id="a" type="number" step="any" placeholder="A" required
+        class="rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+
+      <select id="op"
+        class="rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500">
+        <option value="add">add</option>
+        <option value="sub">sub</option>
+        <option value="mul">mul</option>
+        <option value="div">div</option>
+        <option value="mod">mod</option>
+        <option value="pow">pow</option>
+      </select>
+
+      <input id="b" type="number" step="any" placeholder="B" required
+        class="rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500" />
+
+      <button class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">
+        Calculate
+      </button>
+    </form>
+
+    <!-- Result -->
+    <div class="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-4">
+      <p class="text-sm text-slate-300">Result</p>
+      <p id="result" class="mt-1 text-2xl font-semibold">—</p>
+      <p id="error" class="mt-2 text-sm text-rose-300"></p>
+    </div>
+
+    <!-- Multi-Level Calculator (NO HISTORY) -->
+    <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+      <h3 class="text-lg font-semibold">Multi-Level Calculator</h3>
+      <p class="text-sm text-slate-400 mt-1">
+        Example: (5 + 3) * 2, 10 / (2 + 3), 2^3 + 4
+      </p>
+
+      <form id="exprForm" class="mt-3 flex gap-3">
+        <input id="expression" type="text" required
+          class="flex-1 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 outline-none focus:border-indigo-500"
+          placeholder="Enter expression" />
+        <button class="rounded-xl bg-indigo-600 px-4 py-2 text-sm hover:bg-indigo-500">
+          Calculate
+        </button>
+      </form>
+
+      <p class="mt-3 text-sm text-slate-300">Expression Result</p>
+      <p id="exprResult" class="text-2xl font-semibold">—</p>
+      <p id="exprError" class="text-sm text-rose-300 mt-1"></p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 shadow">
+    <h2 class="text-xl font-semibold">Your stats</h2>
+    <div class="mt-4 space-y-2 text-sm text-slate-300">
+      <p>
+        <span id="statTotal" class="text-slate-100 font-medium">
+          {{ stats.total_calculations }}
+        </span>
+        total calculations
+      </p>
+      <p>
+        Last operation:
+        <span id="statLast" class="text-slate-100 font-medium">
+          {{ stats.last_operation or "—" }}
+        </span>
+      </p>
+    </div>
+    <a href="/profile"
+      class="mt-5 inline-block rounded-xl border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800">
+      Manage profile
+    </a>
+  </div>
+</div>
+
+<!-- History -->
+<div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/20 p-6 shadow">
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-semibold">History</h2>
+    <a href="/api/export/history"
+      class="text-sm rounded-lg border border-slate-700 px-4 py-2 hover:bg-slate-800">
+      Export CSV
+    </a>
+  </div>
+
+  <div class="mt-4 overflow-x-auto">
+    <table class="w-full text-sm text-center">
+      <thead class="text-slate-300">
+        <tr class="border-b border-slate-800">
+          <th>Operation</th>
+          <th>A</th>
+          <th>B</th>
+          <th>Result</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody" class="text-slate-200">
+        {% for c in calcs %}
+        <tr class="border-b border-slate-900">
+          <td>{{ c.op }}</td>
+          <td>{{ c.a }}</td>
+          <td>{{ c.b }}</td>
+          <td class="font-medium">
+          {{ c.result|round(4) if c.result % 1 != 0 else c.result|int }}
+          </td>
+          <td>
+            <button type="button"
+              class="text-xs rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800"
+              onclick="loadFromHistory('{{ c.op }}', '{{ c.a }}', '{{ c.b }}')">
+              Edit
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById("calcForm");
+const historyBody = document.getElementById("historyBody");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  document.getElementById("error").textContent = "";
+  document.getElementById("result").textContent = "…";
+
+  const payload = {
+    op: document.getElementById("op").value,
+    a: parseFloat(document.getElementById("a").value),
+    b: parseFloat(document.getElementById("b").value),
+  };
+
+  const res = await fetch("/api/calculate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    document.getElementById("result").textContent = "—";
+    document.getElementById("error").textContent = data.detail || "Error";
+    return;
+  }
+
+  document.getElementById("result").textContent = formatResult(data.result);
+
+  await fetch("/api/undo/push", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const row = document.createElement("tr");
+  row.className = "border-b border-slate-900";
+  row.innerHTML = `
+    <td>${payload.op}</td>
+    <td>${payload.a}</td>
+    <td>${payload.b}</td>
+    <td class="font-medium">${formatResult(data.result)}</td>
+    <td>
+      <button type="button"
+        class="text-xs rounded-lg border border-slate-700 px-3 py-1 hover:bg-slate-800"
+        onclick="loadFromHistory('${payload.op}', ${payload.a}, ${payload.b})">
+        Edit
+      </button>
+    </td>
+  `;
+  historyBody.prepend(row);
+
+  document.getElementById("statTotal").textContent =
+    parseInt(document.getElementById("statTotal").textContent) + 1;
+  document.getElementById("statLast").textContent = payload.op;
+});
+
+function formatResult(value) {
+  const num = Number(value);
+  if (Number.isInteger(num)) {
+    return num.toString(); // 55 → "55"
+  }
+  return num.toFixed(4).replace(/\.?0+$/, "");
+}
+
+
+function loadFromHistory(op, a, b) {
+  document.getElementById("op").value = op;
+  document.getElementById("a").value = a;
+  document.getElementById("b").value = b;
+  document.getElementById("result").textContent = "—";
+}
+
+async function undoCalc() {
+  const res = await fetch("/api/undo/pop", { method: "POST" });
+  const data = await res.json();
+  if (data.status === "ok") {
+    loadFromHistory(data.calculation.op, data.calculation.a, data.calculation.b);
+  }
+}
+
+async function redoCalc() {
+  const res = await fetch("/api/redo", { method: "POST" });
+  const data = await res.json();
+  if (data.status === "ok") {
+    loadFromHistory(data.calculation.op, data.calculation.a, data.calculation.b);
+  }
+}
+
+document.getElementById("exprForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  document.getElementById("exprResult").textContent = "…";
+  document.getElementById("exprError").textContent = "";
+
+  const res = await fetch("/api/calculate/expression", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ expression: document.getElementById("expression").value }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    document.getElementById("exprResult").textContent = "—";
+    document.getElementById("exprError").textContent = data.detail;
+    return;
+  }
+
+  document.getElementById("exprResult").textContent = formatResult(data.result);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+{% if flash %}
+  {% set kind = flash[0] %}
+  {% set msg = flash[1] %}
+  <div class="mb-6 rounded-2xl border p-4
+    {% if kind == 'success' %} border-emerald-700 bg-emerald-900/20 {% else %} border-rose-700 bg-rose-900/20 {% endif %}">
+    <p class="text-sm">{{ msg }}</p>
+  </div>
+{% endif %}
